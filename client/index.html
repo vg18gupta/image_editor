@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://bootswatch.com/4/cerulean/bootstrap.min.css">
+    <title>IMAGE_RESIZER</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-info mb5">
+        <div class="container">
+            <a href="#" class="navbar-brand">Image Resizer Online</a>
+        </div>
+
+    </nav><br><br>
+    <div class="container">
+        <div class="col-md-3 m-auto">
+            <a href="/jee" class="btn btn-info" role="button">JEE</a>
+            <a href="/neet" class="btn btn-info" role="button">NEET</a>
+            <a href="/upsc" class="btn btn-info" role="button">UPSC</a>
+        </div>
+        <h2>Change dimensions of image/Change quality of image/Convert PNG to JPEG /Convert JPEG to PNG</h2>
+        <div class="row">
+            <div class="col-md-6 m-auto">
+                <div class="card" style="margin-top:10%;padding: 3%">
+                    <form id="uploadForm" method="POST" enctype="multipart/form-data" action="/">
+                        <div class="inpelement">
+                            <input id="fileInput" type="file" name="filename">
+                        </div>
+                        <br>
+                        <div class="inpelement">
+                            <div class="row">
+                                <div class="col">
+                                    <h3>Height: </h3>
+                                </div>
+                                <div class="col">
+                                    <input type="number" id="heightV" name="height" placeholder="height" min="1" max="2000">px
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inpelement">
+                            <div class="row">
+                                <div class="col">
+                                    <h3>Width:</h3>
+                                </div>
+                                <div class="col">
+                                    <input type="number" id="widthV" name="width" placeholder="width" min="1" max="2000">px
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="inpelement">
+                            <div class="row">
+                                <div class="col">
+                                    <h3>Quality:</h3>
+                                </div>
+                                <div class="col">
+                                    <input type="number" id="quality" name="quality" placeholder="quality" value="100" min="1" max="100">%
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="inpelement">
+                            <select id="#imageFormat">
+                                <option value="image/jpeg" selected="selected">JPG</option>
+                                <option value="image/png">PNG</option>
+                                <option value="image/gif">GIF</option>
+                            </select>
+                        </div>
+                        <div class="inpelement">
+                            <button type="submit">Convert</button>
+                        </div>
+                    </form>
+                </div>
+                <br><img id="orgImg" src="#" alt="your image" style="display:none"><br>
+                <p id="sizeOrg"></p>
+                <br><img id="myImg" src="#" alt="your i" style="display:none">
+                <a href="" id="imgdwm" download="converted" style="display:none">
+                    Download
+                </a>
+                <p id="size"></p>
+                <p>Leave the height and width empty if you want to convert to just a different format.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    function sizeOfImage(base64string) {
+        let stringLength = base64string.length - 'data:image/png;base64,'.length;
+        let sizeInBytes = 4 * Math.ceil((stringLength / 3)) * 0.5624896334383812;
+        let sizeInKb = sizeInBytes / 1000;
+        return sizeInKb.toFixed(2);
+    }
+
+    // Display the original image after choosing an image
+    window.addEventListener('load', function () {
+        document.querySelector('input[type="file"]').addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                // convert the blob of image to base64 string
+                let reader = new window.FileReader();
+                reader.readAsDataURL(this.files[0]);
+                reader.onloadend = function () {
+                    base64data = reader.result;
+
+                    // display the image
+                    let img = document.querySelector('#orgImg');
+                    img.src = base64data;
+                    img.style.display = "";
+
+                    // size of the image
+                    document.querySelector("#sizeOrg").textContent = "Size: " + sizeOfImage(base64data) + "Kb";
+                }
+            }
+        });
+    });
+    $("#uploadForm").submit(function (event) {
+        let formData = new FormData();
+        formData.append("filename", $('[name="filename"]')[0].files[0]);
+        formData.append("width", document.querySelector("#widthV").value);
+        formData.append("height", document.querySelector("#heightV").value);
+        formData.append("quality", document.querySelector("#quality").value);
+        let format = document.getElementById("#imageFormat").value;
+        formData.append("format", format);
+        event.stopPropagation();
+        event.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            data: formData,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function (data) {
+                // display the converted image
+                let img = document.querySelector('#myImg');
+                img.src = data;
+                img.style.display = "";
+
+                // size of the converted image
+                document.querySelector("#size").textContent = "Size" + sizeOfImage(data) + "Kb";
+                document.querySelector("#imgdwm").href = data;
+                document.querySelector("#imgdwm").style = "";
+            }
+        });
+        return false;
+    });
+</script>
+
+<style>
+    img {
+        max-height: 500px;
+        max-width: 500px;
+        height: auto;
+        width: auto;
+    }
+
+    .inpelement {
+        margin: 2%;
+    }
+</style>
+
+</html>
